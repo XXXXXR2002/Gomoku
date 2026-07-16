@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>漢字五子棋 · 自訂詞庫</title>
+    <title>漢字五子棋 · 多版本 + 自訂詞庫</title>
     <style>
         /* ===== 全域重置 & 字型 ===== */
         * {
@@ -28,7 +28,7 @@
             border-radius: 48px;
             padding: 30px 35px 40px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-            max-width: 900px;
+            max-width: 960px;
             width: 100%;
             transition: all 0.2s;
         }
@@ -145,6 +145,13 @@
         .btn-success:hover {
             background: linear-gradient(135deg, #2ecc71, #229954);
         }
+        .btn-warning {
+            background: linear-gradient(135deg, #b7950b, #7d6608);
+            border-color: rgba(212, 172, 13, 0.3);
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d4ac0d, #9a7d0a);
+        }
 
         /* ===== 狀態欄 ===== */
         .status-bar {
@@ -257,6 +264,7 @@
             font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             word-break: keep-all;
             line-height: 1;
+            text-align: center;
         }
         .cell:hover:not(.game-over) {
             background: #f0dfc0;
@@ -313,10 +321,17 @@
             100% { transform: scale(0.96); opacity: 1; }
         }
 
-        /* ===== 拼音模式 ===== */
+        /* ===== 拼音模式 (較小字) ===== */
         .cell.pinyin-mode {
-            font-size: 0.7em;
+            font-size: 0.65em;
             letter-spacing: 0.5px;
+        }
+        /* 針對兩字詞 / 四字成語調整 */
+        .cell.word-mode {
+            font-size: 0.9em;
+        }
+        .cell.word-mode.pinyin-mode {
+            font-size: 0.55em;
         }
 
         /* ===== 詞庫編輯器 ===== */
@@ -337,9 +352,20 @@
             letter-spacing: 0.5px;
             outline: none;
             user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .lexicon-editor summary:hover {
             color: #f0e6d0;
+        }
+        .lexicon-editor summary::before {
+            content: '▶';
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .lexicon-editor[open] summary::before {
+            transform: rotate(90deg);
         }
         .lexicon-editor .editor-body {
             margin-top: 12px;
@@ -377,6 +403,57 @@
         }
         .lexicon-editor .editor-actions .info strong {
             color: #c8d6e5;
+        }
+        .file-upload-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .file-upload-wrapper input[type="file"] {
+            display: none;
+        }
+        .file-upload-wrapper .file-label {
+            background: #3a5a7a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #f0e6d0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .file-upload-wrapper .file-label:hover {
+            background: #4a6a8a;
+        }
+
+        /* ===== 版本選擇器 ===== */
+        .version-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .version-selector .version-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #8aa3b9;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .version-selector .version-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #c8d6e5;
+        }
+        .version-selector .version-btn.active {
+            background: #e8b87a;
+            color: #1a2a3a;
+            border-color: #e8b87a;
         }
 
         /* ===== 底部 ===== */
@@ -421,7 +498,9 @@
             .status-bar { padding: 0 2px 8px 2px; }
             .winner-badge { font-size: 15px; padding: 4px 16px; }
             .footer .hint { font-size: 11px; }
-            .cell.pinyin-mode { font-size: 0.65em; }
+            .cell.pinyin-mode { font-size: 0.6em; }
+            .cell.word-mode { font-size: 0.85em; }
+            .cell.word-mode.pinyin-mode { font-size: 0.5em; }
             .lexicon-editor textarea { height: 70px; font-size: 13px; }
         }
         @media (max-width: 420px) {
@@ -439,7 +518,9 @@
             .cell { font-size: 16px; border-radius: 3px; }
             .winner-badge { font-size: 13px; padding: 3px 12px; }
             .footer .hint { font-size: 10px; }
-            .cell.pinyin-mode { font-size: 0.6em; }
+            .cell.pinyin-mode { font-size: 0.55em; }
+            .cell.word-mode { font-size: 0.8em; }
+            .cell.word-mode.pinyin-mode { font-size: 0.45em; }
             .lexicon-editor textarea { height: 60px; font-size: 12px; }
         }
 
@@ -471,23 +552,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* ===== 折疊面板樣式 ===== */
+        /* 折疊面板樣式 */
         details.lexicon-editor summary::-webkit-details-marker {
             color: #c8d6e5;
         }
         details.lexicon-editor summary {
             list-style: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        details.lexicon-editor summary::before {
-            content: '▶';
-            font-size: 14px;
-            transition: 0.2s;
-        }
-        details.lexicon-editor[open] summary::before {
-            transform: rotate(90deg);
         }
     </style>
 </head>
@@ -510,6 +580,12 @@
                 <option value="15">15 × 15</option>
             </select>
         </label>
+        <div class="version-selector" id="versionSelector">
+            <span style="color:#8aa3b9; font-size:13px;">版本：</span>
+            <button class="version-btn active" data-version="char">單字</button>
+            <button class="version-btn" data-version="word">兩字詞</button>
+            <button class="version-btn" data-version="idiom">四字成語</button>
+        </div>
         <button class="btn btn-primary" id="newGameBtn">✦ 新對局</button>
         <button class="btn btn-secondary" id="resetBtn">↻ 重置</button>
     </div>
@@ -534,11 +610,15 @@
     <details class="lexicon-editor" id="lexiconEditor">
         <summary>📚 自訂詞彙庫</summary>
         <div class="editor-body">
-            <textarea id="lexiconInput" placeholder="每行一個詞彙，格式：漢字,拼音（例如：&#10;學校, xue2 xiao4&#10;老師, lao3 shi1&#10;開心, kai1 xin1）"></textarea>
+            <textarea id="lexiconInput" placeholder="每行一個詞彙，格式：詞彙,拼音（例如：&#10;學校, xue2 xiao4&#10;老師, lao3 shi1&#10;開心, kai1 xin1）"></textarea>
             <div class="editor-actions">
-                <button class="btn btn-success" id="updateLexiconBtn">➕ 更新詞庫</button>
-                <button class="btn btn-secondary" id="resetLexiconBtn">↺ 恢復默認</button>
-                <span class="info">當前詞庫字數：<strong id="lexiconCount">0</strong></span>
+                <button class="btn btn-success" id="updateLexiconBtn">➕ 添加詞彙</button>
+                <button class="btn btn-warning" id="resetLexiconBtn">↺ 恢復默認</button>
+                <div class="file-upload-wrapper">
+                    <label class="file-label" for="fileInput">📂 上傳 .txt</label>
+                    <input type="file" id="fileInput" accept=".txt" />
+                </div>
+                <span class="info">當前詞庫：<strong id="lexiconCount">0</strong> 項</span>
             </div>
         </div>
     </details>
@@ -546,7 +626,7 @@
     <!-- 底部 -->
     <div class="footer">
         <div class="hint">
-            <span>紅</span> 紅方 · <span>藍</span> 藍方 &nbsp;|&nbsp; 點擊已落子可切換拼音
+            <span>紅</span> 紅方 · <span>藍</span> 藍方 &nbsp;|&nbsp; 點擊已落子切換拼音
         </div>
         <div class="btn-group">
             <button class="btn btn-secondary" id="undoBtn" style="font-size:13px; padding:4px 14px;">↩ 悔棋</button>
@@ -559,108 +639,69 @@
         'use strict';
 
         // ============================================================
-        //  默認字庫（香港小學常用繁體字，附普通話拼音，數字聲調）
+        //  默認字庫（按版本分類）
         // ============================================================
-        const DEFAULT_LIBRARY = [
-            { char: '的', pinyin: 'de5' }, { char: '一', pinyin: 'yi1' }, { char: '是', pinyin: 'shi4' },
-            { char: '不', pinyin: 'bu4' }, { char: '了', pinyin: 'le5' }, { char: '在', pinyin: 'zai4' },
-            { char: '人', pinyin: 'ren2' }, { char: '有', pinyin: 'you3' }, { char: '我', pinyin: 'wo3' },
-            { char: '他', pinyin: 'ta1' }, { char: '這', pinyin: 'zhe4' }, { char: '中', pinyin: 'zhong1' },
-            { char: '大', pinyin: 'da4' }, { char: '來', pinyin: 'lai2' }, { char: '上', pinyin: 'shang4' },
-            { char: '國', pinyin: 'guo2' }, { char: '個', pinyin: 'ge4' }, { char: '到', pinyin: 'dao4' },
-            { char: '說', pinyin: 'shuo1' }, { char: '們', pinyin: 'men5' }, { char: '為', pinyin: 'wei4' },
-            { char: '子', pinyin: 'zi3' }, { char: '和', pinyin: 'he2' }, { char: '你', pinyin: 'ni3' },
-            { char: '地', pinyin: 'di4' }, { char: '出', pinyin: 'chu1' }, { char: '道', pinyin: 'dao4' },
-            { char: '也', pinyin: 'ye3' }, { char: '時', pinyin: 'shi2' }, { char: '年', pinyin: 'nian2' },
-            { char: '得', pinyin: 'de5' }, { char: '就', pinyin: 'jiu4' }, { char: '那', pinyin: 'na4' },
-            { char: '要', pinyin: 'yao4' }, { char: '下', pinyin: 'xia4' }, { char: '以', pinyin: 'yi3' },
-            { char: '生', pinyin: 'sheng1' }, { char: '會', pinyin: 'hui4' }, { char: '自', pinyin: 'zi4' },
-            { char: '著', pinyin: 'zhe5' }, { char: '去', pinyin: 'qu4' }, { char: '之', pinyin: 'zhi1' },
-            { char: '過', pinyin: 'guo4' }, { char: '家', pinyin: 'jia1' }, { char: '學', pinyin: 'xue2' },
-            { char: '對', pinyin: 'dui4' }, { char: '可', pinyin: 'ke3' }, { char: '她', pinyin: 'ta1' },
-            { char: '裏', pinyin: 'li3' }, { char: '後', pinyin: 'hou4' }, { char: '小', pinyin: 'xiao3' },
-            { char: '麼', pinyin: 'me5' }, { char: '心', pinyin: 'xin1' }, { char: '多', pinyin: 'duo1' },
-            { char: '天', pinyin: 'tian1' }, { char: '而', pinyin: 'er2' }, { char: '能', pinyin: 'neng2' },
-            { char: '好', pinyin: 'hao3' }, { char: '都', pinyin: 'dou1' }, { char: '然', pinyin: 'ran2' },
-            { char: '沒', pinyin: 'mei2' }, { char: '日', pinyin: 'ri4' }, { char: '於', pinyin: 'yu2' },
-            { char: '起', pinyin: 'qi3' }, { char: '還', pinyin: 'hai2' }, { char: '發', pinyin: 'fa1' },
-            { char: '成', pinyin: 'cheng2' }, { char: '事', pinyin: 'shi4' }, { char: '只', pinyin: 'zhi3' },
-            { char: '作', pinyin: 'zuo4' }, { char: '想', pinyin: 'xiang3' }, { char: '看', pinyin: 'kan4' },
-            { char: '開', pinyin: 'kai1' }, { char: '實', pinyin: 'shi2' }, { char: '三', pinyin: 'san1' },
-            { char: '面', pinyin: 'mian4' }, { char: '無', pinyin: 'wu2' }, { char: '同', pinyin: 'tong2' },
-            { char: '與', pinyin: 'yu3' }, { char: '但', pinyin: 'dan4' }, { char: '當', pinyin: 'dang1' },
-            { char: '因', pinyin: 'yin1' }, { char: '公', pinyin: 'gong1' }, { char: '些', pinyin: 'xie1' },
-            { char: '外', pinyin: 'wai4' }, { char: '如', pinyin: 'ru2' }, { char: '意', pinyin: 'yi4' },
-            { char: '使', pinyin: 'shi3' }, { char: '方', pinyin: 'fang1' }, { char: '點', pinyin: 'dian3' },
-            { char: '兒', pinyin: 'er2' }, { char: '主', pinyin: 'zhu3' }, { char: '老', pinyin: 'lao3' },
-            { char: '住', pinyin: 'zhu4' }, { char: '動', pinyin: 'dong4' }, { char: '全', pinyin: 'quan2' },
-            { char: '兩', pinyin: 'liang3' }, { char: '部', pinyin: 'bu4' }, { char: '向', pinyin: 'xiang4' },
-            { char: '其', pinyin: 'qi2' }, { char: '此', pinyin: 'ci3' }, { char: '物', pinyin: 'wu4' },
-            { char: '長', pinyin: 'chang2' }, { char: '頭', pinyin: 'tou2' }, { char: '高', pinyin: 'gao1' },
-            { char: '行', pinyin: 'xing2' }, { char: '北', pinyin: 'bei3' }, { char: '太', pinyin: 'tai4' },
-            { char: '又', pinyin: 'you4' }, { char: '將', pinyin: 'jiang1' }, { char: '十', pinyin: 'shi2' },
-            { char: '把', pinyin: 'ba3' }, { char: '等', pinyin: 'deng3' }, { char: '歡', pinyin: 'huan1' },
-            { char: '樂', pinyin: 'le4' }, { char: '喜', pinyin: 'xi3' }, { char: '怒', pinyin: 'nu4' },
-            { char: '哀', pinyin: 'ai1' }, { char: '憂', pinyin: 'you1' }, { char: '思', pinyin: 'si1' },
-            { char: '念', pinyin: 'nian4' }, { char: '愛', pinyin: 'ai4' }, { char: '恨', pinyin: 'hen4' },
-            { char: '情', pinyin: 'qing2' }, { char: '仇', pinyin: 'chou2' }, { char: '朋', pinyin: 'peng2' },
-            { char: '友', pinyin: 'you3' }, { char: '師', pinyin: 'shi1' }, { char: '生', pinyin: 'sheng1' },
-            { char: '父', pinyin: 'fu4' }, { char: '母', pinyin: 'mu3' }, { char: '兄', pinyin: 'xiong1' },
-            { char: '弟', pinyin: 'di4' }, { char: '姐', pinyin: 'jie3' }, { char: '妹', pinyin: 'mei4' },
-            { char: '男', pinyin: 'nan2' }, { char: '女', pinyin: 'nv3' }, { char: '孩', pinyin: 'hai2' },
-            { char: '童', pinyin: 'tong2' }, { char: '玩', pinyin: 'wan2' }, { char: '具', pinyin: 'ju4' },
-            { char: '書', pinyin: 'shu1' }, { char: '本', pinyin: 'ben3' }, { char: '筆', pinyin: 'bi3' },
-            { char: '紙', pinyin: 'zhi3' }, { char: '墨', pinyin: 'mo4' }, { char: '硯', pinyin: 'yan4' },
-            { char: '琴', pinyin: 'qin2' }, { char: '棋', pinyin: 'qi2' }, { char: '畫', pinyin: 'hua4' },
-            { char: '花', pinyin: 'hua1' }, { char: '草', pinyin: 'cao3' }, { char: '樹', pinyin: 'shu4' },
-            { char: '木', pinyin: 'mu4' }, { char: '山', pinyin: 'shan1' }, { char: '水', pinyin: 'shui3' },
-            { char: '火', pinyin: 'huo3' }, { char: '土', pinyin: 'tu3' }, { char: '金', pinyin: 'jin1' },
-            { char: '銀', pinyin: 'yin2' }, { char: '銅', pinyin: 'tong2' }, { char: '鐵', pinyin: 'tie3' },
-            { char: '風', pinyin: 'feng1' }, { char: '雨', pinyin: 'yu3' }, { char: '雪', pinyin: 'xue3' },
-            { char: '雲', pinyin: 'yun2' }, { char: '星', pinyin: 'xing1' }, { char: '月', pinyin: 'yue4' },
-            { char: '光', pinyin: 'guang1' }, { char: '明', pinyin: 'ming2' }, { char: '暗', pinyin: 'an4' },
-            { char: '快', pinyin: 'kuai4' }, { char: '慢', pinyin: 'man4' }, { char: '新', pinyin: 'xin1' },
-            { char: '舊', pinyin: 'jiu4' }, { char: '好', pinyin: 'hao3' }, { char: '壞', pinyin: 'huai4' },
-            { char: '美', pinyin: 'mei3' }, { char: '醜', pinyin: 'chou3' }, { char: '長', pinyin: 'chang2' },
-            { char: '短', pinyin: 'duan3' }, { char: '高', pinyin: 'gao1' }, { char: '低', pinyin: 'di1' },
-            { char: '深', pinyin: 'shen1' }, { char: '淺', pinyin: 'qian3' }, { char: '寬', pinyin: 'kuan1' },
-            { char: '窄', pinyin: 'zhai3' }, { char: '厚', pinyin: 'hou4' }, { char: '薄', pinyin: 'bo2' },
-            { char: '輕', pinyin: 'qing1' }, { char: '重', pinyin: 'zhong4' }, { char: '軟', pinyin: 'ruan3' },
-            { char: '硬', pinyin: 'ying4' }, { char: '冷', pinyin: 'leng3' }, { char: '熱', pinyin: 're4' },
-            { char: '溫', pinyin: 'wen1' }, { char: '涼', pinyin: 'liang2' }, { char: '香', pinyin: 'xiang1' },
-            { char: '臭', pinyin: 'chou4' }, { char: '甜', pinyin: 'tian2' }, { char: '酸', pinyin: 'suan1' },
-            { char: '苦', pinyin: 'ku3' }, { char: '辣', pinyin: 'la4' }, { char: '鹹', pinyin: 'xian2' },
-            { char: '淡', pinyin: 'dan4' }, { char: '紅', pinyin: 'hong2' }, { char: '黃', pinyin: 'huang2' },
-            { char: '藍', pinyin: 'lan2' }, { char: '綠', pinyin: 'lv4' }, { char: '紫', pinyin: 'zi3' },
-            { char: '黑', pinyin: 'hei1' }, { char: '白', pinyin: 'bai2' }, { char: '青', pinyin: 'qing1' },
-            { char: '橙', pinyin: 'cheng2' }, { char: '粉', pinyin: 'fen3' }, { char: '灰', pinyin: 'hui1' },
-            { char: '棕', pinyin: 'zong1' }, { char: '笑', pinyin: 'xiao4' }, { char: '哭', pinyin: 'ku1' },
-            { char: '走', pinyin: 'zou3' }, { char: '跑', pinyin: 'pao3' }, { char: '跳', pinyin: 'tiao4' },
-            { char: '唱', pinyin: 'chang4' }, { char: '舞', pinyin: 'wu3' }, { char: '寫', pinyin: 'xie3' },
-            { char: '讀', pinyin: 'du2' }, { char: '聽', pinyin: 'ting1' }, { char: '看', pinyin: 'kan4' },
-            { char: '說', pinyin: 'shuo1' }, { char: '問', pinyin: 'wen4' }, { char: '答', pinyin: 'da2' },
-            { char: '教', pinyin: 'jiao4' }, { char: '學', pinyin: 'xue2' }, { char: '習', pinyin: 'xi2' }
+        const DEFAULT_CHARS = [
+            '的','一','是','不','了','在','人','有','我','他','這','中','大','來','上','國','個','到','說','們',
+            '為','子','和','你','地','出','道','也','時','年','得','就','那','要','下','以','生','會','自','著',
+            '去','之','過','家','學','對','可','她','裏','後','小','麼','心','多','天','而','能','好','都','然',
+            '沒','日','於','起','還','發','成','事','只','作','想','看','開','實','三','面','無','同','與','但',
+            '當','因','公','些','外','如','意','使','方','點','兒','主','老','住','動','全','兩','部','向','其',
+            '此','物','長','頭','高','行','北','太','又','將','十','把','等','歡','樂','喜','怒','哀','憂','思',
+            '念','愛','恨','情','仇','朋','友','師','生','父','母','兄','弟','姐','妹','男','女','孩','童','玩',
+            '具','書','本','筆','紙','墨','硯','琴','棋','畫','花','草','樹','木','山','水','火','土','金','銀',
+            '銅','鐵','風','雨','雪','雲','星','月','光','明','暗','快','慢','新','舊','好','壞','美','醜','長',
+            '短','高','低','深','淺','寬','窄','厚','薄','輕','重','軟','硬','冷','熱','溫','涼','香','臭','甜',
+            '酸','苦','辣','鹹','淡','紅','黃','藍','綠','紫','黑','白','青','橙','粉','灰','棕','笑','哭','走',
+            '跑','跳','唱','舞','寫','讀','聽','看','說','問','答','教','學','習'
         ];
 
-        // 當前詞庫（可變）
-        let currentLibrary = [].concat(DEFAULT_LIBRARY);
+        const DEFAULT_WORDS = [
+            '學校','老師','同學','朋友','家庭','父母','兄弟','姐妹','快樂','開心',
+            '學習','讀書','寫字','畫畫','唱歌','跳舞','跑步','游泳','爬山','旅行',
+            '美麗','漂亮','勇敢','善良','聰明','活潑','可愛','認真','努力','加油',
+            '太陽','月亮','星星','白雲','藍天','大海','河流','高山','樹林','花園',
+            '春天','夏天','秋天','冬天','溫暖','炎熱','涼爽','寒冷','陽光','雨水',
+            '紅色','藍色','綠色','黃色','白色','黑色','紫色','橙色','粉紅','灰色',
+            '蘋果','香蕉','西瓜','草莓','葡萄','橙子','桃子','李子','杏子','櫻桃',
+            '貓咪','小狗','兔子','鳥兒','魚兒','馬兒','牛羊','老虎','獅子','大象'
+        ];
+
+        const DEFAULT_IDIOMS = [
+            '一心一意','一馬當先','一鳴驚人','一箭雙鵰','一石二鳥','一帆風順','一舉兩得','一落千丈',
+            '三心二意','三顧茅廬','三言兩語','三頭六臂','四面八方','四通八達','五湖四海','五顏六色',
+            '六神無主','七上八下','七手八腳','八面威風','九牛一毛','九霄雲外','十全十美','十拿九穩',
+            '百發百中','百戰百勝','百聞不如一見','千言萬語','千辛萬苦','千變萬化','萬事如意','萬紫千紅',
+            '春暖花開','秋高氣爽','風和日麗','陽光明媚','鳥語花香','山清水秀','風景如畫','美不勝收',
+            '開開心心','快快樂樂','高高興興','平平安安','順順利利','健健康康','甜甜蜜蜜','和和美美',
+            '一塵不染','一絲不苟','一往無前','一鼓作氣','一心一德','一視同仁','一諾千金','一臂之力',
+            '兩全其美','兩敗俱傷','兩袖清風','兩小無猜','三長兩短','三番兩次','三令五申','三生有幸',
+            '四平八穩','四海為家','五光十色','五花八門','六親不認','六六大順','七零八落','七嘴八舌',
+            '八仙過海','八拜之交','九死一生','九牛二虎','十室九空','十冬臘月','百尺竿頭','百思不解'
+        ];
 
         // ============================================================
-        //  遊戲狀態
+        //  狀態
         // ============================================================
-        const PLAYER1 = 1; // 紅色
-        const PLAYER2 = 2; // 藍色
+        let currentVersion = 'char'; // 'char' | 'word' | 'idiom'
+        let customLexicon = []; // 自訂詞彙 { text, pinyin }，pinyin 可選
 
+        // 當前使用的詞庫（根據版本 + 自訂）
+        let activeLexicon = [];
+
+        // 遊戲狀態
+        const PLAYER1 = 1;
+        const PLAYER2 = 2;
         let boardSize = 11;
-        let board = [];          // 二維陣列，每個元素 { player, char, pinyin, showPinyin }
+        let board = [];
         let currentPlayer = PLAYER1;
         let gameOver = false;
         let winner = 0;
-        let winCells = [];       // [{r, c}, ...]
-        let moveHistory = [];    // [{r, c, player}, ...]
+        let winCells = [];
+        let moveHistory = [];
         let isAnimating = false;
 
-        // DOM 引用
+        // DOM
         const boardEl = document.getElementById('board');
         const sizeSelect = document.getElementById('sizeSelect');
         const newGameBtn = document.getElementById('newGameBtn');
@@ -672,25 +713,106 @@
         const lexiconInput = document.getElementById('lexiconInput');
         const updateLexiconBtn = document.getElementById('updateLexiconBtn');
         const resetLexiconBtn = document.getElementById('resetLexiconBtn');
+        const fileInput = document.getElementById('fileInput');
         const lexiconCount = document.getElementById('lexiconCount');
+        const versionSelector = document.getElementById('versionSelector');
 
         // ============================================================
-        //  輔助函數
+        //  詞庫管理
         // ============================================================
-        function randomChar() {
-            if (currentLibrary.length === 0) {
-                // 如果詞庫為空，返回一個默認
-                return { char: '?', pinyin: '?' };
+
+        function buildActiveLexicon() {
+            // 根據版本取基礎詞庫
+            let base = [];
+            if (currentVersion === 'char') {
+                base = DEFAULT_CHARS.map(ch => ({ text: ch, pinyin: '' }));
+            } else if (currentVersion === 'word') {
+                base = DEFAULT_WORDS.map(w => ({ text: w, pinyin: '' }));
+            } else if (currentVersion === 'idiom') {
+                base = DEFAULT_IDIOMS.map(w => ({ text: w, pinyin: '' }));
             }
-            return currentLibrary[Math.floor(Math.random() * currentLibrary.length)];
+            // 合併自訂詞彙（自訂優先，放在前面以便隨機時更常出現）
+            const merged = [...customLexicon, ...base];
+            // 去重（保留第一次出現）
+            const seen = new Set();
+            const unique = [];
+            for (const item of merged) {
+                const key = item.text;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(item);
+                }
+            }
+            activeLexicon = unique;
+            updateLexiconCounter();
+            return activeLexicon;
         }
 
         function updateLexiconCounter() {
-            lexiconCount.textContent = currentLibrary.length;
+            lexiconCount.textContent = activeLexicon.length;
+        }
+
+        function randomLexiconItem() {
+            if (activeLexicon.length === 0) {
+                return { text: '?', pinyin: '?' };
+            }
+            return activeLexicon[Math.floor(Math.random() * activeLexicon.length)];
+        }
+
+        // 解析自訂詞彙輸入
+        function parseLexicon(text) {
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const entries = [];
+            for (const line of lines) {
+                let parts = line.split(/[,，\t]+/).map(s => s.trim());
+                if (parts.length === 1) {
+                    parts = line.split(/\s+/).map(s => s.trim());
+                }
+                if (parts.length >= 2) {
+                    const textPart = parts[0];
+                    const pinyinPart = parts.slice(1).join(' ');
+                    if (textPart.length > 0) {
+                        entries.push({ text: textPart, pinyin: pinyinPart });
+                    }
+                } else if (parts.length === 1 && parts[0].length > 0) {
+                    entries.push({ text: parts[0], pinyin: '' });
+                }
+            }
+            return entries;
+        }
+
+        function addCustomLexicon(entries) {
+            if (entries.length === 0) {
+                showToast('沒有識別到有效的詞彙');
+                return false;
+            }
+            // 過濾掉空詞
+            const valid = entries.filter(e => e.text.length > 0);
+            if (valid.length === 0) {
+                showToast('沒有有效的詞彙');
+                return false;
+            }
+            // 追加到自訂詞庫（不去重，允許重複添加）
+            customLexicon = customLexicon.concat(valid);
+            // 重建 activeLexicon
+            buildActiveLexicon();
+            // 重新初始化棋盤
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            showToast(`成功添加 ${valid.length} 個詞彙，當前詞庫共 ${activeLexicon.length} 項`);
+            return true;
+        }
+
+        function resetLexicon() {
+            customLexicon = [];
+            buildActiveLexicon();
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            showToast(`已恢復默認詞庫（版本：${currentVersion}），共 ${activeLexicon.length} 項`);
         }
 
         // ============================================================
-        //  核心邏輯
+        //  核心遊戲邏輯
         // ============================================================
 
         function initBoard(size) {
@@ -699,8 +821,13 @@
             for (let r = 0; r < size; r++) {
                 const row = [];
                 for (let c = 0; c < size; c++) {
-                    const { char, pinyin } = randomChar();
-                    row.push({ player: 0, char, pinyin, showPinyin: false });
+                    const item = randomLexiconItem();
+                    row.push({
+                        player: 0,
+                        text: item.text,
+                        pinyin: item.pinyin || '',
+                        showPinyin: false
+                    });
                 }
                 board.push(row);
             }
@@ -719,7 +846,6 @@
             return r >= 0 && r < boardSize && c >= 0 && c < boardSize;
         }
 
-        // 檢查方向連子
         function countDirection(r, c, dr, dc, player) {
             let count = 0;
             let rr = r, cc = c;
@@ -765,7 +891,6 @@
             return true;
         }
 
-        // 處理點擊格子
         function handleCellClick(r, c) {
             if (gameOver) {
                 showToast('遊戲已結束，請點擊「新對局」重新開始');
@@ -775,31 +900,25 @@
             if (!inBounds(r, c)) return;
 
             const cell = board[r][c];
-
-            // 如果格子已被佔據：切換拼音顯示
             if (cell.player !== 0) {
                 cell.showPinyin = !cell.showPinyin;
                 renderBoard();
                 return;
             }
 
-            // 空格：落子
             placeStone(r, c);
         }
 
         function placeStone(r, c) {
-            if (gameOver) return;
-            if (isAnimating) return;
+            if (gameOver || isAnimating) return;
             if (!inBounds(r, c)) return;
             const cell = board[r][c];
             if (cell.player !== 0) return;
 
-            // 落子
             cell.player = currentPlayer;
-            cell.showPinyin = false; // 預設顯示漢字
+            cell.showPinyin = false;
             moveHistory.push({ r, c, player: currentPlayer });
 
-            // 檢查勝利
             const winCellsResult = checkWinAt(r, c, currentPlayer);
             if (winCellsResult) {
                 winCells = winCellsResult;
@@ -811,7 +930,6 @@
                 return;
             }
 
-            // 平局
             if (isBoardFull()) {
                 gameOver = true;
                 winner = 0;
@@ -821,13 +939,11 @@
                 return;
             }
 
-            // 切換玩家
             currentPlayer = (currentPlayer === PLAYER1) ? PLAYER2 : PLAYER1;
             renderBoard();
             updateTurnDisplay();
         }
 
-        // 悔棋
         function undoMove() {
             if (gameOver) {
                 showToast('遊戲已結束，不能悔棋');
@@ -870,6 +986,12 @@
             if (size >= 13) fontSize = Math.min(fontSize, 30);
             if (size <= 9) fontSize = Math.max(fontSize, 34);
 
+            // 如果是詞語或成語，稍微調小字體
+            const isWordMode = (currentVersion === 'word' || currentVersion === 'idiom');
+            if (isWordMode) {
+                fontSize = Math.floor(fontSize * 0.85);
+            }
+
             const winSet = new Set();
             for (const cell of winCells) {
                 winSet.add(`${cell.r},${cell.c}`);
@@ -883,15 +1005,18 @@
                     cell.dataset.r = r;
                     cell.dataset.c = c;
 
-                    // 內容：永遠顯示字符（漢字或拼音）
-                    if (data.showPinyin && data.player !== 0) {
+                    // 顯示內容
+                    if (data.showPinyin && data.player !== 0 && data.pinyin) {
                         cell.textContent = data.pinyin;
                         cell.classList.add('pinyin-mode');
                     } else {
-                        cell.textContent = data.char;
+                        cell.textContent = data.text;
                     }
 
-                    // 樣式：佔據時顯示顏色，否則顯示默認背景（但字符依然可見）
+                    if (isWordMode) {
+                        cell.classList.add('word-mode');
+                    }
+
                     if (data.player !== 0) {
                         cell.classList.add('occupied');
                         if (data.player === PLAYER1) {
@@ -899,9 +1024,6 @@
                         } else {
                             cell.classList.add('player2');
                         }
-                    } else {
-                        // 空格子：顯示普通背景，但字符可見（透明背景）
-                        // 不做特殊處理，保留默認 background
                     }
 
                     if (winSet.has(`${r},${c}`) && data.player !== 0) {
@@ -920,7 +1042,6 @@
                 }
             }
 
-            // 最後落子動畫
             if (moveHistory.length > 0) {
                 const last = moveHistory[moveHistory.length - 1];
                 const idx = last.r * size + last.c;
@@ -973,60 +1094,21 @@
         }
 
         // ============================================================
-        //  詞庫管理
+        //  版本切換
         // ============================================================
 
-        function parseLexicon(text) {
-            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            const entries = [];
-            for (const line of lines) {
-                // 嘗試用逗號、Tab、多個空格分隔
-                let parts = line.split(/[,，\t]+/).map(s => s.trim());
-                if (parts.length === 1) {
-                    // 如果沒有分隔符，嘗試用空格分開（但可能有多個空格）
-                    parts = line.split(/\s+/).map(s => s.trim());
-                }
-                if (parts.length >= 2) {
-                    const char = parts[0];
-                    const pinyin = parts.slice(1).join(' ');
-                    if (char.length > 0) {
-                        entries.push({ char, pinyin });
-                    }
-                } else if (parts.length === 1 && parts[0].length > 0) {
-                    // 只有漢字，拼音留空
-                    entries.push({ char: parts[0], pinyin: '' });
-                }
-            }
-            return entries;
-        }
-
-        function updateLexiconFromInput() {
-            const text = lexiconInput.value;
-            const newEntries = parseLexicon(text);
-            if (newEntries.length === 0) {
-                showToast('沒有識別到有效的詞彙，請檢查格式（每行：漢字,拼音）');
-                return;
-            }
-            // 追加到當前詞庫（去重？簡單追加）
-            currentLibrary = currentLibrary.concat(newEntries);
-            updateLexiconCounter();
-            showToast(`成功添加 ${newEntries.length} 個詞彙，當前詞庫共 ${currentLibrary.length} 字`);
-            // 重新初始化棋盤（重新隨機分配漢字）
+        function switchVersion(version) {
+            if (version === currentVersion) return;
+            currentVersion = version;
+            // 更新按鈕樣式
+            document.querySelectorAll('.version-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.version === version);
+            });
+            // 重建詞庫
+            buildActiveLexicon();
             const size = parseInt(sizeSelect.value);
             initBoard(size);
-            // 保持詞庫計數更新
-            updateLexiconCounter();
-            // 清空輸入框（可選）
-            // lexiconInput.value = '';
-        }
-
-        function resetLexiconToDefault() {
-            currentLibrary = [].concat(DEFAULT_LIBRARY);
-            updateLexiconCounter();
-            showToast(`已恢復默認詞庫，共 ${currentLibrary.length} 字`);
-            const size = parseInt(sizeSelect.value);
-            initBoard(size);
-            updateLexiconCounter();
+            showToast(`切換至：${version === 'char' ? '單字' : version === 'word' ? '兩字詞' : '四字成語'}，共 ${activeLexicon.length} 項`);
         }
 
         // ============================================================
@@ -1052,6 +1134,14 @@
         //  事件綁定
         // ============================================================
 
+        // 版本切換
+        versionSelector.addEventListener('click', function(e) {
+            const btn = e.target.closest('.version-btn');
+            if (btn) {
+                switchVersion(btn.dataset.version);
+            }
+        });
+
         sizeSelect.addEventListener('change', function() {
             const val = parseInt(this.value);
             if (val !== boardSize) {
@@ -1074,25 +1164,48 @@
 
         undoBtn.addEventListener('click', undoMove);
 
-        updateLexiconBtn.addEventListener('click', updateLexiconFromInput);
-        resetLexiconBtn.addEventListener('click', resetLexiconToDefault);
-
-        // 快捷鍵：Ctrl+Enter 更新詞庫
-        lexiconInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                updateLexiconFromInput();
+        updateLexiconBtn.addEventListener('click', function() {
+            const text = lexiconInput.value;
+            const entries = parseLexicon(text);
+            if (addCustomLexicon(entries)) {
+                lexiconInput.value = '';
             }
         });
 
-        // 窗口大小調整
+        resetLexiconBtn.addEventListener('click', resetLexicon);
+
+        // 上傳檔案
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const content = ev.target.result;
+                const entries = parseLexicon(content);
+                if (addCustomLexicon(entries)) {
+                    showToast(`從檔案導入 ${entries.length} 個詞彙`);
+                }
+                fileInput.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // Ctrl+Enter 快速提交
+        lexiconInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                updateLexiconBtn.click();
+            }
+        });
+
+        // 窗口調整
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => renderBoard(), 150);
         });
 
-        // 鍵盤快捷鍵（遊戲）
+        // 鍵盤快捷鍵
         document.addEventListener('keydown', function(e) {
             if (e.key === 'r' || e.key === 'R') {
                 if (e.ctrlKey || e.metaKey) return;
@@ -1114,17 +1227,22 @@
         //  初始化
         // ============================================================
 
-        // 讀取 URL 參數 ?size=13
+        // 讀取 URL 參數
         const params = new URLSearchParams(window.location.search);
         const sizeParam = parseInt(params.get('size'));
         if (sizeParam && [9, 11, 13, 15].includes(sizeParam)) {
             sizeSelect.value = sizeParam;
         }
+        const versionParam = params.get('version');
+        if (versionParam && ['char', 'word', 'idiom'].includes(versionParam)) {
+            currentVersion = versionParam;
+            document.querySelectorAll('.version-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.version === versionParam);
+            });
+        }
 
-        // 初始化詞庫計數
-        updateLexiconCounter();
-
-        // 初始化棋盤
+        // 構建詞庫並初始化
+        buildActiveLexicon();
         initBoard(parseInt(sizeSelect.value));
 
         // 移動端優化
@@ -1134,12 +1252,16 @@
             });
         }
 
-        console.log('🧩 漢字五子棋 · 自訂詞庫版已啟動！');
+        console.log('🧩 漢字五子棋 · 多版本 + 自訂詞庫');
+        console.log('  版本: 單字 / 兩字詞 / 四字成語');
         console.log('  快捷鍵: [N] 新對局  [R] 重置  [Ctrl+Z] 悔棋');
-        console.log('  點擊已落子可切換拼音  |  詞庫編輯器支援 Ctrl+Enter 快速提交');
+        console.log('  點擊已落子可切換拼音  |  支援上傳 .txt 自訂詞庫');
 
-        // 暴露調試
-        window.__game = { board, currentPlayer, gameOver, winner, moveHistory, initBoard, placeStone, undoMove, currentLibrary };
+        window.__game = {
+            board, currentPlayer, gameOver, winner, moveHistory,
+            initBoard, placeStone, undoMove, switchVersion,
+            activeLexicon, customLexicon, currentVersion
+        };
 
     })();
 </script>
