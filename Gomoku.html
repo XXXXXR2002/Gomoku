@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>漢字五子棋 · 自訂詞庫</title>
+    <style>
+        /* ===== 全域重置 & 字型 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #1a2a3a, #0f1a26);
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* ===== 主容器 ===== */
+        .game-container {
+            background: linear-gradient(165deg, #2d4055, #1d2c3f);
+            border-radius: 48px;
+            padding: 30px 35px 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+            max-width: 900px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        /* ===== 標題 ===== */
+        .game-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #f0e6d0;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+            user-select: none;
+        }
+        .game-title span {
+            display: inline-block;
+            background: linear-gradient(135deg, #f7d9a0, #e8b87a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        /* ===== 控制欄 ===== */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px 18px;
+            margin: 16px 0 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 60px;
+            padding: 12px 22px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .controls label {
+            color: #c8d6e5;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .controls select {
+            background: #1e2d3e;
+            color: #f0e6d0;
+            border: 1px solid #3e556b;
+            border-radius: 30px;
+            padding: 6px 16px 6px 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c8d6e5' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .controls select:hover {
+            border-color: #7a9bb8;
+        }
+        .controls select:focus {
+            border-color: #e8b87a;
+            box-shadow: 0 0 0 3px rgba(232, 184, 122, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a6a85, #2d4a62);
+            border: none;
+            color: #f0e6d0;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.25s;
+            letter-spacing: 0.8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #5a7a95, #3a5a72);
+        }
+        .btn:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #e8b87a, #d49a5a);
+            color: #1a2a3a;
+            border-color: rgba(255, 215, 150, 0.3);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #f0c88a, #dcaa6a);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6a8a9a, #4a6a7a);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #2ecc71, #229954);
+        }
+
+        /* ===== 狀態欄 ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 6px 12px 6px;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        .turn-indicator {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #c8d6e5;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 20px 6px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .turn-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 28px;
+            font-weight: 700;
+            background: #2d4055;
+            color: #f0e6d0;
+            transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .turn-char.player1 {
+            background: #c0392b;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(192, 57, 43, 0.4);
+        }
+        .turn-char.player2 {
+            background: #2980b9;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(41, 128, 185, 0.4);
+        }
+        .turn-label {
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .winner-badge {
+            font-size: 18px;
+            font-weight: 700;
+            padding: 6px 24px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: #1a2a3a;
+            box-shadow: 0 4px 20px rgba(241, 196, 15, 0.3);
+            animation: pop 0.5s ease;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.6); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ===== 棋盤容器 ===== */
+        .board-wrapper {
+            background: #b8956a;
+            border-radius: 28px;
+            padding: 18px;
+            box-shadow: 0 8px 0 #7a5d3e, 0 20px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            margin: 4px 0 8px;
+        }
+        .board-inner {
+            background: #dbb88c;
+            border-radius: 16px;
+            padding: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== 棋盤網格 ===== */
+        .board {
+            display: grid;
+            gap: 2px;
+            background: #c9a87c;
+            border-radius: 12px;
+            padding: 4px;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* ===== 每個格子 ===== */
+        .cell {
+            aspect-ratio: 1 / 1;
+            background: #ecd5b0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            color: #2c3e50;
+            position: relative;
+            font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            word-break: keep-all;
+            line-height: 1;
+        }
+        .cell:hover:not(.game-over) {
+            background: #f0dfc0;
+            transform: scale(1.02);
+            box-shadow: 0 0 0 2px rgba(232, 184, 122, 0.5);
+            z-index: 2;
+        }
+        .cell:active:not(.game-over) {
+            transform: scale(0.94);
+        }
+
+        .cell.occupied {
+            cursor: pointer;
+            transform: scale(0.96);
+        }
+        .cell.occupied.player1 {
+            background: #e74c3c;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(192, 57, 43, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.15);
+        }
+        .cell.occupied.player2 {
+            background: #3498db;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(41, 128, 185, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .cell.win-cell {
+            animation: winPulse 0.8s ease infinite alternate;
+            z-index: 3;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.8), 0 0 60px rgba(241, 196, 15, 0.3);
+        }
+        .cell.win-cell.player1 {
+            background: #e74c3c;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.8), 0 0 60px rgba(231, 76, 60, 0.3);
+        }
+        .cell.win-cell.player2 {
+            background: #3498db;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.8), 0 0 60px rgba(52, 152, 219, 0.3);
+        }
+        @keyframes winPulse {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.08); }
+        }
+
+        /* ===== 落子動畫 ===== */
+        .cell.just-placed {
+            animation: placePop 0.3s ease;
+        }
+        @keyframes placePop {
+            0% { transform: scale(0.2); opacity: 0.4; }
+            60% { transform: scale(1.12); }
+            100% { transform: scale(0.96); opacity: 1; }
+        }
+
+        /* ===== 拼音模式 ===== */
+        .cell.pinyin-mode {
+            font-size: 0.7em;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 詞庫編輯器 ===== */
+        .lexicon-editor {
+            margin-top: 18px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            padding: 16px 20px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+        }
+        .lexicon-editor summary {
+            color: #c8d6e5;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 0;
+            letter-spacing: 0.5px;
+            outline: none;
+            user-select: none;
+        }
+        .lexicon-editor summary:hover {
+            color: #f0e6d0;
+        }
+        .lexicon-editor .editor-body {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .lexicon-editor textarea {
+            width: 100%;
+            height: 100px;
+            background: #1a2a3a;
+            border: 1px solid #3e556b;
+            border-radius: 16px;
+            color: #f0e6d0;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: 'Segoe UI', 'PingFang SC', monospace;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+        }
+        .lexicon-editor textarea:focus {
+            border-color: #e8b87a;
+            box-shadow: 0 0 0 3px rgba(232, 184, 122, 0.15);
+        }
+        .lexicon-editor .editor-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .lexicon-editor .editor-actions .info {
+            color: #8aa3b9;
+            font-size: 13px;
+        }
+        .lexicon-editor .editor-actions .info strong {
+            color: #c8d6e5;
+        }
+
+        /* ===== 底部 ===== */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding: 0 4px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .footer .hint {
+            color: #8aa3b9;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+        }
+        .footer .hint span {
+            color: #c8d6e5;
+            font-weight: 500;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 響應式 ===== */
+        @media (max-width: 600px) {
+            .game-container { padding: 18px 16px 24px; border-radius: 32px; }
+            .game-title { font-size: 24px; letter-spacing: 4px; }
+            .controls { padding: 10px 14px; gap: 10px; border-radius: 40px; }
+            .controls label { font-size: 13px; }
+            .controls select { font-size: 13px; padding: 4px 30px 4px 12px; }
+            .btn { font-size: 13px; padding: 6px 16px; }
+            .turn-indicator { font-size: 15px; padding: 4px 14px 4px 10px; }
+            .turn-char { width: 36px; height: 36px; font-size: 22px; }
+            .board-wrapper { padding: 10px; border-radius: 20px; }
+            .board-inner { padding: 3px; border-radius: 12px; }
+            .board { gap: 1.5px; padding: 2px; }
+            .cell { font-size: 22px; border-radius: 4px; }
+            .status-bar { padding: 0 2px 8px 2px; }
+            .winner-badge { font-size: 15px; padding: 4px 16px; }
+            .footer .hint { font-size: 11px; }
+            .cell.pinyin-mode { font-size: 0.65em; }
+            .lexicon-editor textarea { height: 70px; font-size: 13px; }
+        }
+        @media (max-width: 420px) {
+            .game-container { padding: 12px 10px 16px; border-radius: 24px; }
+            .game-title { font-size: 20px; letter-spacing: 2px; }
+            .controls { padding: 8px 10px; gap: 6px; border-radius: 30px; }
+            .controls label { font-size: 12px; }
+            .controls select { font-size: 12px; padding: 3px 26px 3px 10px; }
+            .btn { font-size: 12px; padding: 5px 12px; }
+            .turn-indicator { font-size: 13px; padding: 3px 10px 3px 8px; gap: 8px; }
+            .turn-char { width: 28px; height: 28px; font-size: 18px; }
+            .board-wrapper { padding: 6px; border-radius: 14px; }
+            .board-inner { padding: 2px; border-radius: 8px; }
+            .board { gap: 1px; padding: 1px; }
+            .cell { font-size: 16px; border-radius: 3px; }
+            .winner-badge { font-size: 13px; padding: 3px 12px; }
+            .footer .hint { font-size: 10px; }
+            .cell.pinyin-mode { font-size: 0.6em; }
+            .lexicon-editor textarea { height: 60px; font-size: 12px; }
+        }
+
+        /* ===== 捲軸美化 ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1d2c3f; }
+        ::-webkit-scrollbar-thumb { background: #4a6a85; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5a7a95; }
+
+        /* ===== Toast ===== */
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: #f0e6d0;
+            padding: 14px 30px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            animation: pop 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 折疊面板樣式 ===== */
+        details.lexicon-editor summary::-webkit-details-marker {
+            color: #c8d6e5;
+        }
+        details.lexicon-editor summary {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        details.lexicon-editor summary::before {
+            content: '▶';
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        details.lexicon-editor[open] summary::before {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="app">
+    <!-- 標題 -->
+    <div class="game-title">
+        <span>漢字五子棋</span>
+    </div>
+
+    <!-- 控制欄 -->
+    <div class="controls">
+        <label>
+            棋盤大小
+            <select id="sizeSelect">
+                <option value="9">9 × 9</option>
+                <option value="11" selected>11 × 11</option>
+                <option value="13">13 × 13</option>
+                <option value="15">15 × 15</option>
+            </select>
+        </label>
+        <button class="btn btn-primary" id="newGameBtn">✦ 新對局</button>
+        <button class="btn btn-secondary" id="resetBtn">↻ 重置</button>
+    </div>
+
+    <!-- 狀態欄 -->
+    <div class="status-bar">
+        <div class="turn-indicator" id="turnIndicator">
+            <span class="turn-char player1" id="turnChar">紅</span>
+            <span class="turn-label" id="turnLabel">輪到 紅方 下棋</span>
+        </div>
+        <div id="winnerDisplay"></div>
+    </div>
+
+    <!-- 棋盤 -->
+    <div class="board-wrapper">
+        <div class="board-inner">
+            <div class="board" id="board"></div>
+        </div>
+    </div>
+
+    <!-- 詞庫編輯器 -->
+    <details class="lexicon-editor" id="lexiconEditor">
+        <summary>📚 自訂詞彙庫</summary>
+        <div class="editor-body">
+            <textarea id="lexiconInput" placeholder="每行一個詞彙，格式：漢字,拼音（例如：&#10;學校, xue2 xiao4&#10;老師, lao3 shi1&#10;開心, kai1 xin1）"></textarea>
+            <div class="editor-actions">
+                <button class="btn btn-success" id="updateLexiconBtn">➕ 更新詞庫</button>
+                <button class="btn btn-secondary" id="resetLexiconBtn">↺ 恢復默認</button>
+                <span class="info">當前詞庫字數：<strong id="lexiconCount">0</strong></span>
+            </div>
+        </div>
+    </details>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <div class="hint">
+            <span>紅</span> 紅方 · <span>藍</span> 藍方 &nbsp;|&nbsp; 點擊已落子可切換拼音
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-secondary" id="undoBtn" style="font-size:13px; padding:4px 14px;">↩ 悔棋</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ============================================================
+        //  默認字庫（香港小學常用繁體字，附普通話拼音，數字聲調）
+        // ============================================================
+        const DEFAULT_LIBRARY = [
+            { char: '的', pinyin: 'de5' }, { char: '一', pinyin: 'yi1' }, { char: '是', pinyin: 'shi4' },
+            { char: '不', pinyin: 'bu4' }, { char: '了', pinyin: 'le5' }, { char: '在', pinyin: 'zai4' },
+            { char: '人', pinyin: 'ren2' }, { char: '有', pinyin: 'you3' }, { char: '我', pinyin: 'wo3' },
+            { char: '他', pinyin: 'ta1' }, { char: '這', pinyin: 'zhe4' }, { char: '中', pinyin: 'zhong1' },
+            { char: '大', pinyin: 'da4' }, { char: '來', pinyin: 'lai2' }, { char: '上', pinyin: 'shang4' },
+            { char: '國', pinyin: 'guo2' }, { char: '個', pinyin: 'ge4' }, { char: '到', pinyin: 'dao4' },
+            { char: '說', pinyin: 'shuo1' }, { char: '們', pinyin: 'men5' }, { char: '為', pinyin: 'wei4' },
+            { char: '子', pinyin: 'zi3' }, { char: '和', pinyin: 'he2' }, { char: '你', pinyin: 'ni3' },
+            { char: '地', pinyin: 'di4' }, { char: '出', pinyin: 'chu1' }, { char: '道', pinyin: 'dao4' },
+            { char: '也', pinyin: 'ye3' }, { char: '時', pinyin: 'shi2' }, { char: '年', pinyin: 'nian2' },
+            { char: '得', pinyin: 'de5' }, { char: '就', pinyin: 'jiu4' }, { char: '那', pinyin: 'na4' },
+            { char: '要', pinyin: 'yao4' }, { char: '下', pinyin: 'xia4' }, { char: '以', pinyin: 'yi3' },
+            { char: '生', pinyin: 'sheng1' }, { char: '會', pinyin: 'hui4' }, { char: '自', pinyin: 'zi4' },
+            { char: '著', pinyin: 'zhe5' }, { char: '去', pinyin: 'qu4' }, { char: '之', pinyin: 'zhi1' },
+            { char: '過', pinyin: 'guo4' }, { char: '家', pinyin: 'jia1' }, { char: '學', pinyin: 'xue2' },
+            { char: '對', pinyin: 'dui4' }, { char: '可', pinyin: 'ke3' }, { char: '她', pinyin: 'ta1' },
+            { char: '裏', pinyin: 'li3' }, { char: '後', pinyin: 'hou4' }, { char: '小', pinyin: 'xiao3' },
+            { char: '麼', pinyin: 'me5' }, { char: '心', pinyin: 'xin1' }, { char: '多', pinyin: 'duo1' },
+            { char: '天', pinyin: 'tian1' }, { char: '而', pinyin: 'er2' }, { char: '能', pinyin: 'neng2' },
+            { char: '好', pinyin: 'hao3' }, { char: '都', pinyin: 'dou1' }, { char: '然', pinyin: 'ran2' },
+            { char: '沒', pinyin: 'mei2' }, { char: '日', pinyin: 'ri4' }, { char: '於', pinyin: 'yu2' },
+            { char: '起', pinyin: 'qi3' }, { char: '還', pinyin: 'hai2' }, { char: '發', pinyin: 'fa1' },
+            { char: '成', pinyin: 'cheng2' }, { char: '事', pinyin: 'shi4' }, { char: '只', pinyin: 'zhi3' },
+            { char: '作', pinyin: 'zuo4' }, { char: '想', pinyin: 'xiang3' }, { char: '看', pinyin: 'kan4' },
+            { char: '開', pinyin: 'kai1' }, { char: '實', pinyin: 'shi2' }, { char: '三', pinyin: 'san1' },
+            { char: '面', pinyin: 'mian4' }, { char: '無', pinyin: 'wu2' }, { char: '同', pinyin: 'tong2' },
+            { char: '與', pinyin: 'yu3' }, { char: '但', pinyin: 'dan4' }, { char: '當', pinyin: 'dang1' },
+            { char: '因', pinyin: 'yin1' }, { char: '公', pinyin: 'gong1' }, { char: '些', pinyin: 'xie1' },
+            { char: '外', pinyin: 'wai4' }, { char: '如', pinyin: 'ru2' }, { char: '意', pinyin: 'yi4' },
+            { char: '使', pinyin: 'shi3' }, { char: '方', pinyin: 'fang1' }, { char: '點', pinyin: 'dian3' },
+            { char: '兒', pinyin: 'er2' }, { char: '主', pinyin: 'zhu3' }, { char: '老', pinyin: 'lao3' },
+            { char: '住', pinyin: 'zhu4' }, { char: '動', pinyin: 'dong4' }, { char: '全', pinyin: 'quan2' },
+            { char: '兩', pinyin: 'liang3' }, { char: '部', pinyin: 'bu4' }, { char: '向', pinyin: 'xiang4' },
+            { char: '其', pinyin: 'qi2' }, { char: '此', pinyin: 'ci3' }, { char: '物', pinyin: 'wu4' },
+            { char: '長', pinyin: 'chang2' }, { char: '頭', pinyin: 'tou2' }, { char: '高', pinyin: 'gao1' },
+            { char: '行', pinyin: 'xing2' }, { char: '北', pinyin: 'bei3' }, { char: '太', pinyin: 'tai4' },
+            { char: '又', pinyin: 'you4' }, { char: '將', pinyin: 'jiang1' }, { char: '十', pinyin: 'shi2' },
+            { char: '把', pinyin: 'ba3' }, { char: '等', pinyin: 'deng3' }, { char: '歡', pinyin: 'huan1' },
+            { char: '樂', pinyin: 'le4' }, { char: '喜', pinyin: 'xi3' }, { char: '怒', pinyin: 'nu4' },
+            { char: '哀', pinyin: 'ai1' }, { char: '憂', pinyin: 'you1' }, { char: '思', pinyin: 'si1' },
+            { char: '念', pinyin: 'nian4' }, { char: '愛', pinyin: 'ai4' }, { char: '恨', pinyin: 'hen4' },
+            { char: '情', pinyin: 'qing2' }, { char: '仇', pinyin: 'chou2' }, { char: '朋', pinyin: 'peng2' },
+            { char: '友', pinyin: 'you3' }, { char: '師', pinyin: 'shi1' }, { char: '生', pinyin: 'sheng1' },
+            { char: '父', pinyin: 'fu4' }, { char: '母', pinyin: 'mu3' }, { char: '兄', pinyin: 'xiong1' },
+            { char: '弟', pinyin: 'di4' }, { char: '姐', pinyin: 'jie3' }, { char: '妹', pinyin: 'mei4' },
+            { char: '男', pinyin: 'nan2' }, { char: '女', pinyin: 'nv3' }, { char: '孩', pinyin: 'hai2' },
+            { char: '童', pinyin: 'tong2' }, { char: '玩', pinyin: 'wan2' }, { char: '具', pinyin: 'ju4' },
+            { char: '書', pinyin: 'shu1' }, { char: '本', pinyin: 'ben3' }, { char: '筆', pinyin: 'bi3' },
+            { char: '紙', pinyin: 'zhi3' }, { char: '墨', pinyin: 'mo4' }, { char: '硯', pinyin: 'yan4' },
+            { char: '琴', pinyin: 'qin2' }, { char: '棋', pinyin: 'qi2' }, { char: '畫', pinyin: 'hua4' },
+            { char: '花', pinyin: 'hua1' }, { char: '草', pinyin: 'cao3' }, { char: '樹', pinyin: 'shu4' },
+            { char: '木', pinyin: 'mu4' }, { char: '山', pinyin: 'shan1' }, { char: '水', pinyin: 'shui3' },
+            { char: '火', pinyin: 'huo3' }, { char: '土', pinyin: 'tu3' }, { char: '金', pinyin: 'jin1' },
+            { char: '銀', pinyin: 'yin2' }, { char: '銅', pinyin: 'tong2' }, { char: '鐵', pinyin: 'tie3' },
+            { char: '風', pinyin: 'feng1' }, { char: '雨', pinyin: 'yu3' }, { char: '雪', pinyin: 'xue3' },
+            { char: '雲', pinyin: 'yun2' }, { char: '星', pinyin: 'xing1' }, { char: '月', pinyin: 'yue4' },
+            { char: '光', pinyin: 'guang1' }, { char: '明', pinyin: 'ming2' }, { char: '暗', pinyin: 'an4' },
+            { char: '快', pinyin: 'kuai4' }, { char: '慢', pinyin: 'man4' }, { char: '新', pinyin: 'xin1' },
+            { char: '舊', pinyin: 'jiu4' }, { char: '好', pinyin: 'hao3' }, { char: '壞', pinyin: 'huai4' },
+            { char: '美', pinyin: 'mei3' }, { char: '醜', pinyin: 'chou3' }, { char: '長', pinyin: 'chang2' },
+            { char: '短', pinyin: 'duan3' }, { char: '高', pinyin: 'gao1' }, { char: '低', pinyin: 'di1' },
+            { char: '深', pinyin: 'shen1' }, { char: '淺', pinyin: 'qian3' }, { char: '寬', pinyin: 'kuan1' },
+            { char: '窄', pinyin: 'zhai3' }, { char: '厚', pinyin: 'hou4' }, { char: '薄', pinyin: 'bo2' },
+            { char: '輕', pinyin: 'qing1' }, { char: '重', pinyin: 'zhong4' }, { char: '軟', pinyin: 'ruan3' },
+            { char: '硬', pinyin: 'ying4' }, { char: '冷', pinyin: 'leng3' }, { char: '熱', pinyin: 're4' },
+            { char: '溫', pinyin: 'wen1' }, { char: '涼', pinyin: 'liang2' }, { char: '香', pinyin: 'xiang1' },
+            { char: '臭', pinyin: 'chou4' }, { char: '甜', pinyin: 'tian2' }, { char: '酸', pinyin: 'suan1' },
+            { char: '苦', pinyin: 'ku3' }, { char: '辣', pinyin: 'la4' }, { char: '鹹', pinyin: 'xian2' },
+            { char: '淡', pinyin: 'dan4' }, { char: '紅', pinyin: 'hong2' }, { char: '黃', pinyin: 'huang2' },
+            { char: '藍', pinyin: 'lan2' }, { char: '綠', pinyin: 'lv4' }, { char: '紫', pinyin: 'zi3' },
+            { char: '黑', pinyin: 'hei1' }, { char: '白', pinyin: 'bai2' }, { char: '青', pinyin: 'qing1' },
+            { char: '橙', pinyin: 'cheng2' }, { char: '粉', pinyin: 'fen3' }, { char: '灰', pinyin: 'hui1' },
+            { char: '棕', pinyin: 'zong1' }, { char: '笑', pinyin: 'xiao4' }, { char: '哭', pinyin: 'ku1' },
+            { char: '走', pinyin: 'zou3' }, { char: '跑', pinyin: 'pao3' }, { char: '跳', pinyin: 'tiao4' },
+            { char: '唱', pinyin: 'chang4' }, { char: '舞', pinyin: 'wu3' }, { char: '寫', pinyin: 'xie3' },
+            { char: '讀', pinyin: 'du2' }, { char: '聽', pinyin: 'ting1' }, { char: '看', pinyin: 'kan4' },
+            { char: '說', pinyin: 'shuo1' }, { char: '問', pinyin: 'wen4' }, { char: '答', pinyin: 'da2' },
+            { char: '教', pinyin: 'jiao4' }, { char: '學', pinyin: 'xue2' }, { char: '習', pinyin: 'xi2' }
+        ];
+
+        // 當前詞庫（可變）
+        let currentLibrary = [].concat(DEFAULT_LIBRARY);
+
+        // ============================================================
+        //  遊戲狀態
+        // ============================================================
+        const PLAYER1 = 1; // 紅色
+        const PLAYER2 = 2; // 藍色
+
+        let boardSize = 11;
+        let board = [];          // 二維陣列，每個元素 { player, char, pinyin, showPinyin }
+        let currentPlayer = PLAYER1;
+        let gameOver = false;
+        let winner = 0;
+        let winCells = [];       // [{r, c}, ...]
+        let moveHistory = [];    // [{r, c, player}, ...]
+        let isAnimating = false;
+
+        // DOM 引用
+        const boardEl = document.getElementById('board');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const turnChar = document.getElementById('turnChar');
+        const turnLabel = document.getElementById('turnLabel');
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        const lexiconInput = document.getElementById('lexiconInput');
+        const updateLexiconBtn = document.getElementById('updateLexiconBtn');
+        const resetLexiconBtn = document.getElementById('resetLexiconBtn');
+        const lexiconCount = document.getElementById('lexiconCount');
+
+        // ============================================================
+        //  輔助函數
+        // ============================================================
+        function randomChar() {
+            if (currentLibrary.length === 0) {
+                // 如果詞庫為空，返回一個默認
+                return { char: '?', pinyin: '?' };
+            }
+            return currentLibrary[Math.floor(Math.random() * currentLibrary.length)];
+        }
+
+        function updateLexiconCounter() {
+            lexiconCount.textContent = currentLibrary.length;
+        }
+
+        // ============================================================
+        //  核心邏輯
+        // ============================================================
+
+        function initBoard(size) {
+            boardSize = size;
+            board = [];
+            for (let r = 0; r < size; r++) {
+                const row = [];
+                for (let c = 0; c < size; c++) {
+                    const { char, pinyin } = randomChar();
+                    row.push({ player: 0, char, pinyin, showPinyin: false });
+                }
+                board.push(row);
+            }
+            currentPlayer = PLAYER1;
+            gameOver = false;
+            winner = 0;
+            winCells = [];
+            moveHistory = [];
+            isAnimating = false;
+            winnerDisplay.innerHTML = '';
+            updateTurnDisplay();
+            renderBoard();
+        }
+
+        function inBounds(r, c) {
+            return r >= 0 && r < boardSize && c >= 0 && c < boardSize;
+        }
+
+        // 檢查方向連子
+        function countDirection(r, c, dr, dc, player) {
+            let count = 0;
+            let rr = r, cc = c;
+            while (inBounds(rr, cc) && board[rr][cc].player === player) {
+                count++;
+                rr += dr;
+                cc += dc;
+            }
+            return count;
+        }
+
+        function checkWinAt(r, c, player) {
+            const directions = [
+                [0, 1],
+                [1, 0],
+                [1, 1],
+                [1, -1]
+            ];
+            for (const [dr, dc] of directions) {
+                const count1 = countDirection(r, c, dr, dc, player);
+                const count2 = countDirection(r, c, -dr, -dc, player);
+                const total = count1 + count2 - 1;
+                if (total >= 5) {
+                    const cells = [];
+                    for (let i = 0; i < count1; i++) {
+                        cells.push({ r: r + i * dr, c: c + i * dc });
+                    }
+                    for (let i = 1; i < count2; i++) {
+                        cells.push({ r: r - i * dr, c: c - i * dc });
+                    }
+                    return cells;
+                }
+            }
+            return null;
+        }
+
+        function isBoardFull() {
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (board[r][c].player === 0) return false;
+                }
+            }
+            return true;
+        }
+
+        // 處理點擊格子
+        function handleCellClick(r, c) {
+            if (gameOver) {
+                showToast('遊戲已結束，請點擊「新對局」重新開始');
+                return;
+            }
+            if (isAnimating) return;
+            if (!inBounds(r, c)) return;
+
+            const cell = board[r][c];
+
+            // 如果格子已被佔據：切換拼音顯示
+            if (cell.player !== 0) {
+                cell.showPinyin = !cell.showPinyin;
+                renderBoard();
+                return;
+            }
+
+            // 空格：落子
+            placeStone(r, c);
+        }
+
+        function placeStone(r, c) {
+            if (gameOver) return;
+            if (isAnimating) return;
+            if (!inBounds(r, c)) return;
+            const cell = board[r][c];
+            if (cell.player !== 0) return;
+
+            // 落子
+            cell.player = currentPlayer;
+            cell.showPinyin = false; // 預設顯示漢字
+            moveHistory.push({ r, c, player: currentPlayer });
+
+            // 檢查勝利
+            const winCellsResult = checkWinAt(r, c, currentPlayer);
+            if (winCellsResult) {
+                winCells = winCellsResult;
+                winner = currentPlayer;
+                gameOver = true;
+                renderBoard();
+                updateTurnDisplay();
+                showWinner(winner);
+                return;
+            }
+
+            // 平局
+            if (isBoardFull()) {
+                gameOver = true;
+                winner = 0;
+                renderBoard();
+                updateTurnDisplay();
+                winnerDisplay.innerHTML = '<span class="winner-badge">🤝 平局</span>';
+                return;
+            }
+
+            // 切換玩家
+            currentPlayer = (currentPlayer === PLAYER1) ? PLAYER2 : PLAYER1;
+            renderBoard();
+            updateTurnDisplay();
+        }
+
+        // 悔棋
+        function undoMove() {
+            if (gameOver) {
+                showToast('遊戲已結束，不能悔棋');
+                return;
+            }
+            if (moveHistory.length === 0) {
+                showToast('沒有可悔的棋');
+                return;
+            }
+            if (isAnimating) return;
+
+            const last = moveHistory.pop();
+            const cell = board[last.r][last.c];
+            cell.player = 0;
+            cell.showPinyin = false;
+            currentPlayer = last.player;
+            winner = 0;
+            winCells = [];
+            renderBoard();
+            updateTurnDisplay();
+            winnerDisplay.innerHTML = '';
+        }
+
+        // ============================================================
+        //  渲染
+        // ============================================================
+
+        function renderBoard() {
+            const size = boardSize;
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.innerHTML = '';
+
+            const screenWidth = window.innerWidth;
+            let fontSize = 32;
+            if (screenWidth < 420) fontSize = 16;
+            else if (screenWidth < 600) fontSize = 22;
+            else if (screenWidth < 768) fontSize = 28;
+
+            if (size >= 15) fontSize = Math.min(fontSize, 28);
+            if (size >= 13) fontSize = Math.min(fontSize, 30);
+            if (size <= 9) fontSize = Math.max(fontSize, 34);
+
+            const winSet = new Set();
+            for (const cell of winCells) {
+                winSet.add(`${cell.r},${cell.c}`);
+            }
+
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const data = board[r][c];
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+
+                    // 內容：永遠顯示字符（漢字或拼音）
+                    if (data.showPinyin && data.player !== 0) {
+                        cell.textContent = data.pinyin;
+                        cell.classList.add('pinyin-mode');
+                    } else {
+                        cell.textContent = data.char;
+                    }
+
+                    // 樣式：佔據時顯示顏色，否則顯示默認背景（但字符依然可見）
+                    if (data.player !== 0) {
+                        cell.classList.add('occupied');
+                        if (data.player === PLAYER1) {
+                            cell.classList.add('player1');
+                        } else {
+                            cell.classList.add('player2');
+                        }
+                    } else {
+                        // 空格子：顯示普通背景，但字符可見（透明背景）
+                        // 不做特殊處理，保留默認 background
+                    }
+
+                    if (winSet.has(`${r},${c}`) && data.player !== 0) {
+                        cell.classList.add('win-cell');
+                    }
+
+                    cell.style.fontSize = fontSize + 'px';
+
+                    cell.addEventListener('click', () => {
+                        const rr = parseInt(cell.dataset.r);
+                        const cc = parseInt(cell.dataset.c);
+                        handleCellClick(rr, cc);
+                    });
+
+                    boardEl.appendChild(cell);
+                }
+            }
+
+            // 最後落子動畫
+            if (moveHistory.length > 0) {
+                const last = moveHistory[moveHistory.length - 1];
+                const idx = last.r * size + last.c;
+                const child = boardEl.children[idx];
+                if (child && !child.classList.contains('win-cell')) {
+                    child.classList.add('just-placed');
+                    setTimeout(() => child.classList.remove('just-placed'), 300);
+                }
+            }
+        }
+
+        function updateTurnDisplay() {
+            if (gameOver) {
+                if (winner === PLAYER1) {
+                    turnChar.textContent = '紅';
+                    turnChar.className = 'turn-char player1';
+                    turnLabel.textContent = '紅方 獲勝！ 🎉';
+                } else if (winner === PLAYER2) {
+                    turnChar.textContent = '藍';
+                    turnChar.className = 'turn-char player2';
+                    turnLabel.textContent = '藍方 獲勝！ 🎉';
+                } else {
+                    turnChar.textContent = '—';
+                    turnChar.className = 'turn-char';
+                    turnLabel.textContent = '平局';
+                }
+                return;
+            }
+
+            if (currentPlayer === PLAYER1) {
+                turnChar.textContent = '紅';
+                turnChar.className = 'turn-char player1';
+                turnLabel.textContent = '輪到 紅方 下棋';
+            } else {
+                turnChar.textContent = '藍';
+                turnChar.className = 'turn-char player2';
+                turnLabel.textContent = '輪到 藍方 下棋';
+            }
+        }
+
+        function showWinner(player) {
+            const name = player === PLAYER1 ? '紅方' : '藍方';
+            const bg = player === PLAYER1 ? '#e74c3c' : '#3498db';
+            winnerDisplay.innerHTML = `
+                <span class="winner-badge" style="background:${bg}; color:#fff;">
+                    🏆 ${name} 獲勝！
+                </span>
+            `;
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        // ============================================================
+        //  詞庫管理
+        // ============================================================
+
+        function parseLexicon(text) {
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const entries = [];
+            for (const line of lines) {
+                // 嘗試用逗號、Tab、多個空格分隔
+                let parts = line.split(/[,，\t]+/).map(s => s.trim());
+                if (parts.length === 1) {
+                    // 如果沒有分隔符，嘗試用空格分開（但可能有多個空格）
+                    parts = line.split(/\s+/).map(s => s.trim());
+                }
+                if (parts.length >= 2) {
+                    const char = parts[0];
+                    const pinyin = parts.slice(1).join(' ');
+                    if (char.length > 0) {
+                        entries.push({ char, pinyin });
+                    }
+                } else if (parts.length === 1 && parts[0].length > 0) {
+                    // 只有漢字，拼音留空
+                    entries.push({ char: parts[0], pinyin: '' });
+                }
+            }
+            return entries;
+        }
+
+        function updateLexiconFromInput() {
+            const text = lexiconInput.value;
+            const newEntries = parseLexicon(text);
+            if (newEntries.length === 0) {
+                showToast('沒有識別到有效的詞彙，請檢查格式（每行：漢字,拼音）');
+                return;
+            }
+            // 追加到當前詞庫（去重？簡單追加）
+            currentLibrary = currentLibrary.concat(newEntries);
+            updateLexiconCounter();
+            showToast(`成功添加 ${newEntries.length} 個詞彙，當前詞庫共 ${currentLibrary.length} 字`);
+            // 重新初始化棋盤（重新隨機分配漢字）
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            // 保持詞庫計數更新
+            updateLexiconCounter();
+            // 清空輸入框（可選）
+            // lexiconInput.value = '';
+        }
+
+        function resetLexiconToDefault() {
+            currentLibrary = [].concat(DEFAULT_LIBRARY);
+            updateLexiconCounter();
+            showToast(`已恢復默認詞庫，共 ${currentLibrary.length} 字`);
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            updateLexiconCounter();
+        }
+
+        // ============================================================
+        //  Toast
+        // ============================================================
+
+        let toastTimer = null;
+
+        function showToast(msg) {
+            const old = document.querySelector('.toast-msg');
+            if (old) old.remove();
+            const div = document.createElement('div');
+            div.className = 'toast-msg';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                if (div.parentNode) div.remove();
+            }, 2500);
+        }
+
+        // ============================================================
+        //  事件綁定
+        // ============================================================
+
+        sizeSelect.addEventListener('change', function() {
+            const val = parseInt(this.value);
+            if (val !== boardSize) {
+                initBoard(val);
+                this.value = val;
+            }
+        });
+
+        newGameBtn.addEventListener('click', function() {
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            showToast('新對局開始！');
+        });
+
+        resetBtn.addEventListener('click', function() {
+            const size = parseInt(sizeSelect.value);
+            initBoard(size);
+            showToast('棋盤已重置');
+        });
+
+        undoBtn.addEventListener('click', undoMove);
+
+        updateLexiconBtn.addEventListener('click', updateLexiconFromInput);
+        resetLexiconBtn.addEventListener('click', resetLexiconToDefault);
+
+        // 快捷鍵：Ctrl+Enter 更新詞庫
+        lexiconInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                updateLexiconFromInput();
+            }
+        });
+
+        // 窗口大小調整
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => renderBoard(), 150);
+        });
+
+        // 鍵盤快捷鍵（遊戲）
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'r' || e.key === 'R') {
+                if (e.ctrlKey || e.metaKey) return;
+                resetBtn.click();
+                e.preventDefault();
+            }
+            if (e.key === 'n' || e.key === 'N') {
+                if (e.ctrlKey || e.metaKey) return;
+                newGameBtn.click();
+                e.preventDefault();
+            }
+            if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                undoBtn.click();
+            }
+        });
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+
+        // 讀取 URL 參數 ?size=13
+        const params = new URLSearchParams(window.location.search);
+        const sizeParam = parseInt(params.get('size'));
+        if (sizeParam && [9, 11, 13, 15].includes(sizeParam)) {
+            sizeSelect.value = sizeParam;
+        }
+
+        // 初始化詞庫計數
+        updateLexiconCounter();
+
+        // 初始化棋盤
+        initBoard(parseInt(sizeSelect.value));
+
+        // 移動端優化
+        if ('ontouchstart' in window) {
+            document.querySelectorAll('.cell').forEach(el => {
+                el.style.touchAction = 'manipulation';
+            });
+        }
+
+        console.log('🧩 漢字五子棋 · 自訂詞庫版已啟動！');
+        console.log('  快捷鍵: [N] 新對局  [R] 重置  [Ctrl+Z] 悔棋');
+        console.log('  點擊已落子可切換拼音  |  詞庫編輯器支援 Ctrl+Enter 快速提交');
+
+        // 暴露調試
+        window.__game = { board, currentPlayer, gameOver, winner, moveHistory, initBoard, placeStone, undoMove, currentLibrary };
+
+    })();
+</script>
+</body>
+</html>
